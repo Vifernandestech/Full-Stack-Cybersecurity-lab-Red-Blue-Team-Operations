@@ -75,7 +75,7 @@ New-ADUser -Name "Vitor Fernandes" -GivenName "Vitor" -Surname "Fernandes" -Disp
 
 
 * **Telemetria de SO (Blue Team):** Instalação do **Zabbix Agent 2** (versão 6.0 LTS) via instalador MSI, apontando as conexões ativas e passivas para o IP da Torre de Controle (`10.0.10.20`).
- * **Ativação no Servidor via Interface Gráfica Web (WebGUI):** Ativação via Interface Gráfica Web (WebGUI): Acessando a interface gráfica do Zabbix pelo navegador do Windows Server através do endereço `http://10.0.10.20/zabbix`, (IP máquina Ubuntu) o alvo foi configurado manualmente no menu `Configuration > Hosts`. O dispositivo foi associado ao template `Windows by Zabbix agent` e atrelado à interface `10.0.10.10`, validando o fluxo de dados quando o ícone ZBX acendeu na cor verde.
+  * **Ativação no Servidor via Interface Gráfica Web (WebGUI):** Ativação via Interface Gráfica Web (WebGUI): Acessando a interface gráfica do Zabbix pelo navegador do Windows Server através do endereço `http://10.0.10.20/zabbix`, (IP máquina Ubuntu) o alvo foi configurado manualmente no menu `Configuration > Hosts`. O dispositivo foi associado ao template `Windows by Zabbix agent` e atrelado à interface `10.0.10.10`, validando o fluxo de dados quando o ícone ZBX acendeu na cor verde.
 
 ## 👁️ Fase 3: Blue Team e Monitoramento Leste-Oeste
 

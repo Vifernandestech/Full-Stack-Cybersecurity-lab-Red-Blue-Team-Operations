@@ -158,25 +158,25 @@ enum4linux -a 10.0.10.10
 ## 📚 Conceitos Acadêmicos Aplicados
 
 * **Conectividade de Redes & Protocolos (TCP/IP):**
-* **Topologia e Roteamento:** Isolamento de redes virtuais (Bridged vs. Host-Only), configuração de Gateways, NAT, e reservas de escopo DHCP.
-* **Análise de Tráfego:** Diferenciação prática entre conexões completas e furtivas (*TCP SYN Stealth Scan*), captura de tráfego ICMP e inspeção de pacotes via filtros BPF (*Berkeley Packet Filter*).
-* **Engenharia de Switching:** Compreensão do comportamento de Tabelas MAC em switches (físicos/virtuais) e a aplicação do Modo Promíscuo atrelado ao *Port Mirroring* para viabilizar a visibilidade de tráfego Leste-Oeste.
+  * **Topologia e Roteamento:** Isolamento de redes virtuais (Bridged vs. Host-Only), configuração de Gateways, NAT, e reservas de escopo DHCP.
+  * **Análise de Tráfego:** Diferenciação prática entre conexões completas e furtivas (*TCP SYN Stealth Scan*), captura de tráfego ICMP e inspeção de pacotes.
+  * **Engenharia de Switching:** Compreensão do comportamento de Tabelas MAC em switches (físicos/virtuais) e a aplicação do Modo Promíscuo atrelado ao *Port Mirroring* para viabilizar a visibilidade de tráfego Leste-Oeste.
 
 
 * **Infraestrutura e Sistemas Operacionais:**
-* **Windows Server (Microsoft):** Arquitetura e hierarquia de *Active Directory* (Floresta, NetBIOS, SID/RID), automação de provisionamento de identidades via **PowerShell**, estruturação de Unidades Organizacionais (OUs) e a evolução do hardening nativo (Bloqueio de IPC$ e *Null Sessions* a partir do Server 2012+).
-* **Linux (Ubuntu/Debian):** Gerenciamento de dependências via `apt` atrelado ao *release* do SO (*Focal Fossa*), orquestração de *Daemons* (`systemctl`), manipulação de interfaces de rede via CLI (`ip link`) e administração de SGBD contornando bloqueios de privilégios restritos (*SUPER PRIVILEGE* no MySQL).
-* **FreeBSD:** Administração de *appliances* de rede dedicados (pfSense) para gestão de borda.
+  * **Windows Server (Microsoft):** Arquitetura e hierarquia de *Active Directory* (Floresta, NetBIOS, SID/RID), automação de provisionamento de identidades via **PowerShell**, estruturação de Unidades Organizacionais (OUs) e a evolução do hardening nativo (Bloqueio de IPC$ e *Null Sessions* a partir do Server 2012+).
+  * **Linux (Ubuntu/Debian):** Gerenciamento de dependências via `apt` atrelado ao *release* do SO (*Focal Fossa*), orquestração de *Daemons* (`systemctl`), manipulação de interfaces de rede via CLI (`ip link`) e administração de SGBD contornando bloqueios de privilégios restritos (*SUPER PRIVILEGE* no MySQL).
+  * **FreeBSD:** Administração de *appliances* de rede dedicados (pfSense) para gestão de borda.
 
 
 * **Segurança da Informação e Auditoria:**
-* **Defense in Depth (Defesa em Profundidade):** Posicionamento estratégico de sensores IDS para cobrir vetores Norte-Sul (WAN) e Leste-Oeste (LAN).
-* **Controle de Acesso e PoLP:** Aplicação do Princípio do Menor Privilégio através de GPOs hierárquicas, segmentando usuários comuns de administradores de domínio (Bloqueio de *Command Prompt*).
-* **Gerenciamento Seguro:** Aplicação do conceito de gerência *Out-of-Band*, onde o firewall de borda só aceita configurações através de uma interface web isolada na LAN interna.
-* **Telemetria:** Monitoramento de disponibilidade de ativos via Zabbix Agent para respostas a incidentes de SOC.
+  * **Defense in Depth (Defesa em Profundidade):** Posicionamento estratégico de sensores IDS para cobrir vetores Norte-Sul (WAN) e Leste-Oeste (LAN).
+  * **Controle de Acesso e PoLP:** Aplicação do Princípio do Menor Privilégio através de GPOs hierárquicas, segmentando usuários comuns de administradores de domínio (Bloqueio de *Command Prompt*).
+  * **Gerenciamento Seguro:** Aplicação do conceito de gerência *Out-of-Band*, onde o firewall de borda só aceita configurações através de uma interface web isolada na LAN interna.
+  * **Telemetria:** Monitoramento de disponibilidade de ativos via Zabbix Agent para respostas a incidentes de SOC.
 
 
 * **Ethical Hacking e Red Teaming:**
-* **Footprinting & Scanning:** Identificação de alvos e *OS Fingerprinting* (detecção de SO e *builds* exatas) burlando firewalls básicos.
-* **Enumeration (Enumeração):** Exploração do protocolo SMB/RPC para extração de metadados críticos da rede (SIDs de domínio) e compreensão técnica do erro `NT_STATUS_ACCESS_DENIED` como resposta a varreduras anônimas.
-* **Mapeamento de Ameaças:** Entendimento prático da diferença entre ataques *Zero-Knowledge* (Atacante externo cego) e *Insider Threat* (Ameaça interna com credenciais de baixo privilégio via *Phishing*).
+  * **Footprinting & Scanning:** Identificação de alvos e *OS Fingerprinting* (detecção de SO e *builds* exatas) burlando firewalls básicos.
+  * **Enumeration (Enumeração):** Exploração do protocolo SMB/RPC para extração de metadados críticos da rede (SIDs de domínio) e compreensão técnica do erro `NT_STATUS_ACCESS_DENIED` como resposta a varreduras anônimas.
+  * **Mapeamento de Ameaças:** Entendimento prático da diferença entre ataques *Zero-Knowledge* (Atacante externo cego) e *Insider Threat* (Ameaça interna com credenciais de baixo privilégio via *Phishing*).

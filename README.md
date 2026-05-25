@@ -47,8 +47,8 @@ A fundação do laboratório começou pelo isolamento e proteção da borda, apl
 * **Serviços Base de Rede:** Configuração do IP do Gateway LAN para `10.0.10.1` e ativação do serviço DHCP com *range* reservado (`10.0.10.50` a `10.0.10.200`), deixando os primeiros endereços livres para a alocação de servidores e ativos de infraestrutura.
 * **Gerenciamento Seguro:** A administração do firewall foi isolada da interface externa. Toda a configuração gráfica foi realizada internamente via WebGUI, acessando o endereço `http://10.0.10.1` através do navegador da máquina Windows Server.
 * **Regras de Tráfego e Controle de Acesso (Firewall > Rules):** O ambiente foi validado em cima das regras estruturais do pfSense para garantir a comunicação Norte-Sul:
-* **Regras da LAN (LAN Rules):** Validação e manutenção da regra *Default allow LAN to any rule* (IPv4). Esta foi a regra de tráfego exata que permitiu que as máquinas internas (como o Windows Server) acessassem a internet externa, comportamento comprovado com sucesso durante os testes de conectividade (`ping 8.8.8.8`).
-* **Regras da WAN (WAN Rules):** Manutenção do bloqueio padrão de entrada (*Default Deny Inbound*) e das opções *Block private networks* (RFC 1918) e *Block bogon networks*. Isso garantiu que a rede Bridged (física) não invadisse a nossa topologia de laboratório.
+  * **Regras da LAN (LAN Rules):** Validação e manutenção da regra *Default allow LAN to any rule* (IPv4). Esta foi a regra de tráfego exata que permitiu que as máquinas internas (como o Windows Server) acessassem a internet externa, comportamento comprovado com sucesso durante os testes de conectividade (`ping 8.8.8.8`).
+  * **Regras da WAN (WAN Rules):** Manutenção do bloqueio padrão de entrada (*Default Deny Inbound*) e das opções *Block private networks* (RFC 1918) e *Block bogon networks*. Isso garantiu que a rede Bridged (física) não invadisse a nossa topologia de laboratório.
 
 
 * **IDS de Perímetro (Snort):** Instalação do pacote nativo via *Package Manager* e ativação do serviço atrelado à interface WAN, atuando com as configurações base como o sensor de borda da nossa rede.

@@ -77,26 +77,46 @@ New-ADUser -Name "Vitor Fernandes" -GivenName "Vitor" -Surname "Fernandes" -Disp
 * **Telemetria de SO (Blue Team):** Instalação do **Zabbix Agent 2** (versão 6.0 LTS) via instalador MSI, apontando as conexões ativas e passivas para o IP da Torre de Controle (`10.0.10.20`).
   * **Ativação no Servidor via Interface Gráfica Web (WebGUI):** Ativação via Interface Gráfica Web (WebGUI): Acessando a interface gráfica do Zabbix pelo navegador do Windows Server através do endereço `http://10.0.10.20/zabbix`, (IP máquina Ubuntu) o alvo foi configurado manualmente no menu `Configuration > Hosts`. O dispositivo foi associado ao template `Windows by Zabbix agent` e atrelado à interface `10.0.10.10`, validando o fluxo de dados quando o ícone ZBX acendeu na cor verde.
 
-## 👁️ Fase 3: Blue Team e Monitoramento Leste-Oeste
+---
 
-Implementação do arsenal defensivo interno para garantir visibilidade total sobre ameaças lateralizadas.
+## 👁️ Fase 3: Blue Team e Monitoramento Leste-Oeste (Ubuntu Server)
 
-* **Infraestrutura Zabbix (Stack LAMP):** Instalação do Apache2, MySQL, PHP e repositórios do Zabbix Server 6.0 LTS no Ubuntu.
-* **Solução de Problema (Repositório Quebrado):** Erro de pacote não encontrado ao tentar instalar o Zabbix via repositório de versões mais recentes. Identificação da versão exata do SO (`lsb_release -a` retornando `20.04.6 LTS`) e injeção do repositório *Focal Fossa* adequado.
-* **Solução de Problema (MySQL ERROR 1419 - SUPER PRIVILEGE):** O script de importação do banco de dados do Zabbix falhou devido à ausência de privilégios para criar *Triggers*. A correção envolveu o acesso como `root`, a exclusão do banco corrompido (`drop database zabbix;`) e a reinjeção contornando o bloqueio de segurança:
+Implementação do arsenal defensivo interno para garantir visibilidade total sobre ameaças lateralizadas e centralização de logs. A máquina foi configurada com IP estático (`10.0.10.20`).
+
+* **Infraestrutura Zabbix (Stack LAMP):** Instalação de dependências base (Apache2, MySQL, PHP) e repositórios oficiais do Zabbix Server 6.0 LTS no Ubuntu.
+* **Solução de Problema (Repositório Quebrado):** O `apt` retornou erro de pacote não encontrado ao tentar instalar o Zabbix via repositório de versões mais recentes (22.04/24.04). Identificou-se a versão exata do SO base executando `lsb_release -a` (retornando `20.04.6 LTS`), o que permitiu a injeção do repositório *Focal Fossa* correto (`zabbix-release_6.0-4+ubuntu20.04_all.deb`).
+
+
+* **Configuração e Troubleshooting do Banco de Dados:** Criação estrutural do banco relacional `zabbix` com *character set* `utf8mb4`.
+* **Solução de Problema (Interrupção e SUPER PRIVILEGE):** O processo de injeção da estrutura SQL via `zcat` não possui barra de progresso e foi abortado prematuramente, gerando o erro de corrupção `table role already exists` em tentativas subsequentes. Ao tentar corrigir, o MySQL retornou `ERROR 1419` devido à ausência de privilégios (`SUPER PRIVILEGE`) do usuário comum para criar *Triggers*. A correção definitiva exigiu acessar o MySQL como `root`, forçar a variável `log_bin_trust_function_creators = 1`, deletar o banco corrompido (`drop database zabbix;`) e reinjetar diretamente no banco base:
+
 
 ```bash
 zcat /usr/share/zabbix-sql-scripts/mysql/server.sql.gz | mysql --default-character-set=utf8mb4 zabbix
 
 ```
 
-* **IDS Interno (Snort):** Configuração do Snort no Linux para inspecionar tráfego não direcionado diretamente a ele.
-* **Solução de Problema (Cegueira do IDS e Erro BPF):** O Snort não capturava tráfego Leste-Oeste devido ao bloqueio do switch virtual; resolvido ativando o modo *Allow All* no VirtualBox e o comando `ip link set enp0s3 promisc on` no Ubuntu. O erro fatal de inicialização `Can't set DAQ BPF filter` foi corrigido reordenando a sintaxe e incluindo a flag obrigatória `-c`:
+
+* **Orquestração de Serviços (Daemons):** Edição do arquivo de configuração nativo (`nano /etc/zabbix/zabbix_server.conf`) para descomentar e inserir a credencial do banco (`DBPassword=.Fumaxu951.`). Os serviços foram então ativados para inicialização automática junto ao SO:
+```bash
+systemctl restart zabbix-server zabbix-agent apache2
+systemctl enable zabbix-server zabbix-agent apache2
+
+```
+
+
+* **Acesso Inicial WebGUI:** O *setup* final e o provisionamento da interface do Zabbix foram concluídos via navegador (`http://10.0.10.20/zabbix`), utilizando as credenciais padrão de fábrica (`Admin` / `zabbix`) para acesso ao *Dashboard*.
+* **IDS Interno (Snort):** Instalação do pacote Snort no Linux (`apt-get install snort`) associado à interface local `enp0s3`. Durante a instalação via *ncurses*, o CIDR foi rigorosamente configurado para monitorar a rede `10.0.10.0/24`.
+* **Solução de Problema (Cegueira Leste-Oeste e Erro BPF):** Inicialmente, o IDS não capturava tráfego lateral devido ao bloqueio natural do switch virtual. A arquitetura foi ajustada ativando o modo *Allow All* no hypervisor e forçando a placa no SO com `ip link set enp0s3 promisc on`. Um erro fatal de inicialização (`Can't set DAQ BPF filter`) causado por má interpretação de sintaxe foi corrigido reordenando os parâmetros e incluindo a flag obrigatória `-c`:
+
 
 ```bash
 sudo snort -A console -c /etc/snort/snort.conf -i enp0s3
 
 ```
+
+
+* **Validação Operacional:** Com o console do Snort em modo de escuta, testes de conectividade (ICMP Echo Request/Reply) foram disparados do Windows Server (`10.0.10.10`) para o Gateway (`10.0.10.1`), para o próprio Ubuntu (`10.0.10.20`) e para a WAN (`8.8.8.8`). Todos os fluxos Leste-Oeste foram interceptados e alertados com sucesso na tela do Blue Team.
 
 ## 🥷 Fase 4: Red Team (Reconhecimento e Enumeração)
 

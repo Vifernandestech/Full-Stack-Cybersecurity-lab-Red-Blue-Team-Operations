@@ -116,7 +116,3 @@ enum4linux -a 10.0.10.10
 * **Ethical Hacking:** OSINT simulado, *Footprinting*, *Scanning*, *Enumeration* (SMB/RPC), bypass de defesas básicas e identificação de vetores de ataque em Active Directory.
 
 ---
-
-
-
-Quando terminar de criar o seu repositório, avise-me! Podemos despausar o laboratório e seguir exatamente de onde paramos: testar a existência dos usuários utilizando o script agressivo de Kerberos do Nmap.

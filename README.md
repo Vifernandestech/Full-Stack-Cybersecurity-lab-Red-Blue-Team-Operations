@@ -34,8 +34,8 @@ Para resolver isso fisicamente, utiliza-se o **Port Mirroring** (ou porta SPAN),
 | --- | --- | --- | --- |
 | **Gateway / Perimeter** | pfSense (FreeBSD) | `10.0.10.1` | Roteamento, Firewall, Servidor DHCP e IDS de Borda (Norte-Sul). |
 | **Coração Corporativo** | Windows Server 2019 | `10.0.10.10` (Estático) | Controlador de Domínio (`SENAC.LOCAL`), GPOs e Alvo Primário. |
-| **Torre de Controle** | Ubuntu Server 20.04 | `10.0.10.20` (Estático) | Monitoramento Zabbix e IDS Interno via modo promíscuo (Leste-Oeste). |
-| **Ameaça (Red Team)** | Kali Linux | `10.0.10.52` (DHCP) | Máquina do atacante para Reconhecimento, Enumeração e Exploração. |
+| **Torre de Controle (Blue Team)** | Ubuntu Server 20.04 LTS | `10.0.10.20` (Estático) | Monitoramento Zabbix (Stack LAMP) e IDS Interno via modo promíscuo (Leste-Oeste) - Snort. |
+| **Ameaça Interna (Red Team)** | Kali Linux | `10.0.10.52` (DHCP) | Máquina do atacante para Reconhecimento, Enumeração e Exploração. |
 
 ---
 

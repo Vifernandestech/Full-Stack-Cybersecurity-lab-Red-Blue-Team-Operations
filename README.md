@@ -2,19 +2,39 @@
 
 ## 📌 Objetivo do Projeto
 
-Este projeto consiste na arquitetura, implementação e documentação de um laboratório completo de cibersegurança (Full-Stack). O objetivo é simular um ambiente corporativo real, aplicando na prática conceitos avançados de infraestrutura de TI, Sistemas Operacionais, Protocolos de Redes (TCP/IP), Auditoria de Sistemas e Ethical Hacking.
+Este projeto consiste na arquitetura, implementação e documentação de um laboratório completo de cibersegurança (Full-Stack). O objetivo é simular um ambiente corporativo real, aplicando na prática conceitos avançados de infraestrutura de TI, Sistemas Operacionais, Protocolos de Redes (TCP/IP), Auditoria/ Monitoramento de Sistemas e Ethical Hacking.
 
 A infraestrutura foi desenhada sob a ótica de **Defense in Depth** (Defesa em Profundidade), permitindo a execução de operações ofensivas (Red Team) e a validação contínua da detecção e telemetria (Blue Team).
 
+---
+
 ## 🏗️ Topologia e Arquitetura de Rede
 
-O ambiente foi construído sobre um hypervisor utilizando o isolamento tático de redes para separar o tráfego de internet (Norte-Sul) do tráfego interno da rede local (Leste-Oeste). O Modo Promíscuo foi ativado ("Permitir Tudo") na rede LAN virtual para viabilizar o *Port Mirroring* necessário para o Sistema de Detecção de Intrusão (IDS).
+O ambiente foi construído sobre um hypervisor (VirtualBox) utilizando o isolamento tático de redes para segmentar e auditar o fluxo de dados. A arquitetura foi desenhada para simular não apenas os ativos de uma empresa, mas o comportamento físico dos equipamentos de infraestrutura (Switches e Roteadores).
+
+### Fluxo de Tráfego: Norte-Sul vs. Leste-Oeste
+
+Para garantir a Defesa em Profundidade (*Defense in Depth*), a rede foi estruturada levando em consideração os dois eixos de tráfego corporativo:
+
+* **Tráfego Norte-Sul:** Representa os dados que entram ou saem da rede local para a internet. Este vetor é afunilado e controlado pelo nosso Gateway de borda (pfSense), que atua como a primeira linha de defesa contra ameaças externas utilizando um IDS na interface WAN.
+* **Tráfego Leste-Oeste:** Representa a comunicação lateral, interna à rede LAN (ex: um computador infectado tentando atacar o Controlador de Domínio). Este tráfego viaja diretamente pelo *switch* interno e nunca chega ao Gateway. Para auditar esse vetor, foi necessário implementar visibilidade interna através de um IDS secundário.
+
+### Visibilidade Interna: Port Mirroring e Modo Promíscuo
+
+Em redes físicas modernas, um *switch* encaminha os pacotes de rede exclusivamente para a porta do dispositivo de destino (baseado na tabela MAC). Isso cria um "ponto cego" para sistemas de segurança corporativos, pois o IDS não consegue "escutar" a comunicação entre as outras máquinas.
+
+Para resolver isso fisicamente, utiliza-se o **Port Mirroring** (ou porta SPAN), uma configuração no *switch* que espelha uma cópia de todo o tráfego da rede para uma porta de monitoramento dedicada. No nosso laboratório virtual, replicamos essa engenharia através das seguintes configurações:
+
+* **Modo Promíscuo ("Permitir Tudo"):** Ativado na rede *Host-Only* do hypervisor. Essa configuração quebra o isolamento padrão do *switch* virtual, permitindo que os pacotes Leste-Oeste sejam espelhados em *broadcast*.
+* **Interface do IDS (Ubuntu/Snort):** A placa de rede do servidor de segurança foi configurada em modo promíscuo no nível do Sistema Operacional (`ip link set promisc on`), forçando-a a capturar e inspecionar os pacotes que não eram originalmente destinados ao seu endereço IP.
+
+### Tabela de Ativos e Segmentação
 
 | Máquina / Papel | SO / Tecnologia | IP (Rede Interna) | Função na Arquitetura |
 | --- | --- | --- | --- |
-| **Gateway / Perimeter** | pfSense (FreeBSD) | `10.0.10.1` | Roteamento, Firewall, Servidor DHCP e IDS de Borda (Snort WAN). |
+| **Gateway / Perimeter** | pfSense (FreeBSD) | `10.0.10.1` | Roteamento, Firewall, Servidor DHCP e IDS de Borda (Norte-Sul). |
 | **Coração Corporativo** | Windows Server 2019 | `10.0.10.10` (Estático) | Controlador de Domínio (`SENAC.LOCAL`), GPOs e Alvo Primário. |
-| **Torre de Controle** | Ubuntu Server 20.04 LTS | `10.0.10.20` (Estático) | Monitoramento Zabbix (Stack LAMP) e IDS Interno (Snort LAN). |
+| **Torre de Controle** | Ubuntu Server 20.04 | `10.0.10.20` (Estático) | Monitoramento Zabbix e IDS Interno via modo promíscuo (Leste-Oeste). |
 | **Ameaça (Red Team)** | Kali Linux | `10.0.10.52` (DHCP) | Máquina do atacante para Reconhecimento, Enumeração e Exploração. |
 
 ---

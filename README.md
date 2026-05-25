@@ -56,21 +56,26 @@ A fundação do laboratório começou pelo isolamento e proteção da borda, apl
 
 ---
 
-## 🏢 Fase 2: O Coração Corporativo (Active Directory)
+## 🏢 Fase 2: O Coração Corporativo (Active Directory e Windows Server 2019)
 
-Simulação de uma infraestrutura corporativa robusta com políticas de identidade e restrição de privilégios.
+Simulação de uma infraestrutura corporativa robusta com políticas de identidade, restrição de privilégios e monitoramento ativo.
 
-* **Promoção a DC:** Instalação das funções *AD DS* e *DNS Server*. Criação da floresta `SENAC.LOCAL` e configuração da credencial administrativa padrão.
-* **Automação DevSecOps:** Abandono da interface gráfica (ADUC) para provisionamento de usuários. Utilização do PowerShell para criar e injetar a conta "Vitor Fernandes" diretamente na raiz do domínio com controle de senha em texto seguro.
+* **Endereçamento Estratégico e DNS:** Antes da promoção a domínio, o servidor foi isolado com IP estático (`10.0.10.10`) fora do *range* do DHCP do pfSense, garantindo a estabilidade da infraestrutura. O DNS primário foi apontado para *localhost* (`127.0.0.1`) e o secundário para o Gateway (`10.0.10.1`), preparando o terreno para a resolução de nomes da rede local.
+* **Promoção a Domain Controller (DC):** Instalação das funções de *AD DS* (Active Directory Domain Services) e *DNS Server*. Criação da floresta `SENAC.LOCAL` com a definição do nome NetBIOS como `SENAC` e configuração da credencial administrativa de recuperação.
+* **Automação DevSecOps (PowerShell):** Abandono da interface gráfica clássica (ADUC) para o provisionamento de usuários. Utilização da CLI para criar e injetar a conta operacional com controle rigoroso da string de senha.
 
 ```powershell
-$Password = ConvertTo-SecureString "SENHA_AQUI" -AsPlainText -Force
-New-ADUser -Name "Vitor Fernandes" -GivenName "Vitor" -Surname "Fernandes" -DisplayName "Vitor Fernandes" -UserPrincipalName "vitor@senac.local" -Enabled $true -ChangePasswordAtLogon $false -AccountPassword $Password -Path "CN=Users,DC=SENAC,DC=LOCAL"
+$Password = ConvertTo-SecureString ".Fumaxu951." -AsPlainText -Force
+New-ADUser -Name "Vitor Fernandes" -GivenName "Vitor" -Surname "Fernandes" -DisplayName "Vitor Fernandes (Hardclock)" -UserPrincipalName "vitor@senac.local" -Enabled $true -ChangePasswordAtLogon $false -AccountPassword $Password -Path "CN=Users,DC=SENAC,DC=LOCAL"
 
 ```
 
-* **Solução de Problema (Lockout de GPO):** Uma GPO bloqueando o *Command Prompt* foi aplicada acidentalmente na raiz do domínio, bloqueando o próprio Administrador. A correção arquitetônica exigiu reverter a política raiz, criar uma Unidade Organizacional (OU) chamada `Usuarios_Comuns`, mover a conta corporativa para lá e aplicar a GPO de restrição exclusivamente nesta OU.
-* **Telemetria de SO:** Instalação do **Zabbix Agent** via MSI e apontamento para a Torre de Controle (`10.0.10.20`), validando a comunicação com o ZBX verde.
+* **Solução de Problema Arquitetônico (Lockout de GPO):** Durante a fase de blindagem, a política para desativar o *Command Prompt* (`User Configuration > Policies > Administrative Templates > System > Prevent access to the command prompt`) foi aplicada acidentalmente na *Default Domain Policy*. Isso causou um efeito cascata que bloqueou o próprio `SENAC\Administrator`.
+* **A Correção:** Acesso ao `gpmc.msc` via atalho de execução para reverter a GPO raiz. Criação de uma segmentação lógica com uma Unidade Organizacional (OU) chamada `Usuarios_Comuns`, movimentação da conta corporativa para esta OU e aplicação de uma nova política (`Bloqueio_CMD_Usuarios`) exclusivamente para este escopo. Finalizado forçando a atualização na rede com o comando `cmd /c gpupdate /force`.
+
+
+* **Telemetria de SO (Blue Team):** Instalação do **Zabbix Agent 2** (versão 6.0 LTS) via instalador MSI, apontando as conexões ativas e passivas para o IP da Torre de Controle (`10.0.10.20`).
+ * **Ativação no Servidor via Interface Gráfica Web (WebGUI):** Ativação via Interface Gráfica Web (WebGUI): Acessando a interface gráfica do Zabbix pelo navegador do Windows Server através do endereço `http://10.0.10.20/zabbix`, (IP máquina Ubuntu) o alvo foi configurado manualmente no menu `Configuration > Hosts`. O dispositivo foi associado ao template `Windows by Zabbix agent` e atrelado à interface `10.0.10.10`, validando o fluxo de dados quando o ícone ZBX acendeu na cor verde.
 
 ## 👁️ Fase 3: Blue Team e Monitoramento Leste-Oeste
 

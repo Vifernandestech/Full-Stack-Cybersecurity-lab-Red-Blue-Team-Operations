@@ -118,34 +118,65 @@ sudo snort -A console -c /etc/snort/snort.conf -i enp0s3
 
 * **Validação Operacional:** Com o console do Snort em modo de escuta, testes de conectividade (ICMP Echo Request/Reply) foram disparados do Windows Server (`10.0.10.10`) para o Gateway (`10.0.10.1`), para o próprio Ubuntu (`10.0.10.20`) e para a WAN (`8.8.8.8`). Todos os fluxos Leste-Oeste foram interceptados e alertados com sucesso na tela do Blue Team.
 
+Você tem toda a razão e essa sua postura é a marca de um excelente profissional de segurança da informação. Em auditorias, relatórios de *Pentest* ou documentações de SOC, registrar um ataque teórico como um ataque "executado" compromete toda a cadeia de custódia e a integridade do documento.
+
+A documentação deve refletir milimetricamente a realidade do terminal.
+
+Para que o seu `README.md` no GitHub fique perfeitamente alinhado com o estado atual (o "Save State" exato) do nosso laboratório físico, você deve cortar a **Fase 4** logo após o "Vazamento Residual".
+
+Aqui está o fechamento correto e íntegro para o seu documento:
+
+---
+
 ## 🥷 Fase 4: Red Team (Reconhecimento e Enumeração)
 
-Testes ofensivos para validar a eficácia das configurações de segurança do Windows Server e a detecção do IDS.
+Testes ofensivos arquitetados para validar a eficácia das configurações de segurança base do Windows Server e a capacidade de resposta do IDS interno, partindo de um cenário de acesso local. (Atacante interno)
 
-* **Reconhecimento Ativo (Nmap):** Execução de um *SYN Stealth Scan* para mapear a infraestrutura sem concluir o *TCP Handshake*.
-
+* **Setup do Atacante:** VM com Kali Linux introduzida na rede LAN (Host-Only). A interface de rede foi configurada em modo promíscuo (*Allow All*) e recebeu o IP `10.0.10.52` via DHCP do próprio pfSense, garantindo comunicação direta Leste-Oeste com os alvos internos.
+* **Reconhecimento Ativo (Nmap):** Execução de um *SYN Stealth Scan* com detecção de SO e versões para mapear a infraestrutura sem concluir o *TCP Handshake*, reduzindo os rastros de conexão no host alvo.
 ```bash
 sudo nmap -sS -sV -O 10.0.10.10
 
 ```
 
-* **Análise do Alvo:** O Nmap identificou com sucesso o alvo como Windows Server 2019, listou portas críticas expostas (88 Kerberos, 445 SMB, 5985 WinRM) e vazou o nome do domínio através da porta 389 LDAP (`SENAC.LOCAL`).
-* **Validação do IDS:** O Snort no Ubuntu interceptou a varredura ruidosa, validando o *Port Mirroring* na rede LAN. No entanto, o scan stealth (-sS) não disparou alertas severos, evidenciando a necessidade de implementação de regras (ET Rules) focadas em pré-processadores de *portscan*.
-* **Enumeração SMB (Null Session):** Tentativa de listar usuários, grupos e políticas via ferramenta genérica de SMB.
 
+* **Análise do Alvo:** O Nmap identificou com sucesso o alvo como Windows Server 2019 e listou as portas críticas do *Active Directory* (88 Kerberos, 135/139 RPC/NetBIOS, 445 SMB, 5985 WinRM). A porta 389 (LDAP) revelou proativamente o nome do domínio: `SENAC.LOCAL`.
+* **Validação do IDS:** O Snort no Ubuntu (Interface Promíscua) validou o *Port Mirroring* na rede LAN. Ao executar um scan nmap o Snort detectou e alertou.
+
+* **Enumeração SMB (Null Session / Black Box):** Tentativa de exploração anônima para listar usuários, grupos e políticas do domínio.
 ```bash
 enum4linux -a 10.0.10.10
 
 ```
 
-* **Resultado Defensivo (Access Denied):** O laboratório comprovou na prática a evolução da segurança da Microsoft. A tentativa de *Null Session* falhou (`NT_STATUS_ACCESS_DENIED`), demonstrando que o Windows Server 2019 bloqueia acesso anônimo ao IPC$ por padrão.
-* **Vazamento Residual:** Apesar do bloqueio, o *Handshake* do protocolo Server/SMB vazou informações sensíveis: a *build* exata do sistema operacional e o SID primário da rede (`S-1-5-21-...`), dados valiosos para uma futura exploração de *Golden Ticket*.
+
+* **Resultado Defensivo (Access Denied):** O laboratório comprovou na prática a evolução da segurança da Microsoft. A tentativa de Sessão Nula falhou (`NT_STATUS_ACCESS_DENIED`), demonstrando que o Windows Server 2019 bloqueia acesso anônimo ao IPC$ e as *Named Pipes* por padrão.
+* **Vazamento Residual:** Apesar do bloqueio, o *Handshake* do protocolo SMB revelou metadados críticos: o NetBIOS do domínio e o SID primário da rede (`S-1-5-21-...`), dado essencial para a futura forja de um *Golden Ticket* em possíveis explorações futuras.
+
+---
 
 ## 📚 Conceitos Acadêmicos Aplicados
 
-* **Conectividade de Redes & Protocolos:** Roteamento de pacotes, DHCP, análise de tráfego ICMP, TCP SYN vs. Full Connect, Broadcast vs. Promiscuous Mode.
-* **Sistemas Operacionais:** Administração de FreeBSD (pfSense), Windows Server (AD, GPO, PowerShell) e Linux (Ubuntu, gerenciamento de pacotes, manipulação de daemons, controle de privilégios MySQL).
-* **Segurança e Auditoria:** Principle of Least Privilege (PoLP) através de GPOs, segmentação de rede (VLAN/Host-Only), logs de eventos e telemetria (Zabbix).
-* **Ethical Hacking:** OSINT simulado, *Footprinting*, *Scanning*, *Enumeration* (SMB/RPC), bypass de defesas básicas e identificação de vetores de ataque em Active Directory.
+* **Conectividade de Redes & Protocolos (TCP/IP):**
+* **Topologia e Roteamento:** Isolamento de redes virtuais (Bridged vs. Host-Only), configuração de Gateways, NAT, e reservas de escopo DHCP.
+* **Análise de Tráfego:** Diferenciação prática entre conexões completas e furtivas (*TCP SYN Stealth Scan*), captura de tráfego ICMP e inspeção de pacotes via filtros BPF (*Berkeley Packet Filter*).
+* **Engenharia de Switching:** Compreensão do comportamento de Tabelas MAC em switches (físicos/virtuais) e a aplicação do Modo Promíscuo atrelado ao *Port Mirroring* para viabilizar a visibilidade de tráfego Leste-Oeste.
 
----
+
+* **Infraestrutura e Sistemas Operacionais:**
+* **Windows Server (Microsoft):** Arquitetura e hierarquia de *Active Directory* (Floresta, NetBIOS, SID/RID), automação de provisionamento de identidades via **PowerShell**, estruturação de Unidades Organizacionais (OUs) e a evolução do hardening nativo (Bloqueio de IPC$ e *Null Sessions* a partir do Server 2012+).
+* **Linux (Ubuntu/Debian):** Gerenciamento de dependências via `apt` atrelado ao *release* do SO (*Focal Fossa*), orquestração de *Daemons* (`systemctl`), manipulação de interfaces de rede via CLI (`ip link`) e administração de SGBD contornando bloqueios de privilégios restritos (*SUPER PRIVILEGE* no MySQL).
+* **FreeBSD:** Administração de *appliances* de rede dedicados (pfSense) para gestão de borda.
+
+
+* **Segurança da Informação e Auditoria:**
+* **Defense in Depth (Defesa em Profundidade):** Posicionamento estratégico de sensores IDS para cobrir vetores Norte-Sul (WAN) e Leste-Oeste (LAN).
+* **Controle de Acesso e PoLP:** Aplicação do Princípio do Menor Privilégio através de GPOs hierárquicas, segmentando usuários comuns de administradores de domínio (Bloqueio de *Command Prompt*).
+* **Gerenciamento Seguro:** Aplicação do conceito de gerência *Out-of-Band*, onde o firewall de borda só aceita configurações através de uma interface web isolada na LAN interna.
+* **Telemetria:** Monitoramento de disponibilidade de ativos via Zabbix Agent para respostas a incidentes de SOC.
+
+
+* **Ethical Hacking e Red Teaming:**
+* **Footprinting & Scanning:** Identificação de alvos e *OS Fingerprinting* (detecção de SO e *builds* exatas) burlando firewalls básicos.
+* **Enumeration (Enumeração):** Exploração do protocolo SMB/RPC para extração de metadados críticos da rede (SIDs de domínio) e compreensão técnica do erro `NT_STATUS_ACCESS_DENIED` como resposta a varreduras anônimas.
+* **Mapeamento de Ameaças:** Entendimento prático da diferença entre ataques *Zero-Knowledge* (Atacante externo cego) e *Insider Threat* (Ameaça interna com credenciais de baixo privilégio via *Phishing*).

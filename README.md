@@ -187,7 +187,7 @@ SET GLOBAL log_bin_trust_function_creators = 0;
 ```
 ---
 
-## 🥷 Fase 4: Red Team (Reconhecimento e Enumeração)
+## 💻 Fase 4: Red Team (Reconhecimento e Enumeração)
 
 Testes ofensivos arquitetados para validar a eficácia das configurações de segurança base do Windows Server e a capacidade de resposta do IDS interno, partindo de um cenário de acesso local. (Atacante interno)
 

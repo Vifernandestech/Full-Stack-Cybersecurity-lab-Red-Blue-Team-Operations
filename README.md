@@ -65,7 +65,7 @@ Simulação de uma infraestrutura corporativa robusta com políticas de identida
 * **Automação DevSecOps (PowerShell):** Abandono da interface gráfica clássica (ADUC) para o provisionamento de usuários. Utilização da CLI para criar e injetar a conta operacional com controle rigoroso da string de senha.
 
 ```powershell
-$Password = ConvertTo-SecureString ".Fumaxu951." -AsPlainText -Force
+$Password = ConvertTo-SecureString "[SENHA_OMITIDA]" -AsPlainText -Force
 New-ADUser -Name "Vitor Fernandes" -GivenName "Vitor" -Surname "Fernandes" -DisplayName "Vitor Fernandes (Hardclock)" -UserPrincipalName "vitor@senac.local" -Enabled $true -ChangePasswordAtLogon $false -AccountPassword $Password -Path "CN=Users,DC=SENAC,DC=LOCAL"
 
 ```
@@ -97,7 +97,7 @@ zcat /usr/share/zabbix-sql-scripts/mysql/server.sql.gz | mysql --default-charact
 ```
 
 
-* **Orquestração de Serviços (Daemons):** Edição do arquivo de configuração nativo (`nano /etc/zabbix/zabbix_server.conf`) para descomentar e inserir a credencial do banco (`DBPassword=.Fumaxu951.`). Os serviços foram então ativados para inicialização automática junto ao SO:
+* **Orquestração de Serviços (Daemons):** Edição do arquivo de configuração nativo (`nano /etc/zabbix/zabbix_server.conf`) para descomentar e inserir a credencial do banco (`DBPassword=[SENHA_OMITIDA]`). Os serviços foram então ativados para inicialização automática junto ao SO:
 ```bash
 systemctl restart zabbix-server zabbix-agent apache2
 systemctl enable zabbix-server zabbix-agent apache2
@@ -130,7 +130,7 @@ Após o provisionamento da stack LAMP, o SGBD foi instanciado e configurado para
 
 ```sql
 CREATE DATABASE zabbix CHARACTER SET utf8mb4 COLLATE utf8mb4_bin;
-CREATE USER 'zabbix'@'localhost' IDENTIFIED BY '.Fumaxu951.';
+CREATE USER 'zabbix'@'localhost' IDENTIFIED BY '[SENHA_OMITIDA]';
 GRANT ALL PRIVILEGES ON zabbix.* TO 'zabbix'@'localhost';
 FLUSH PRIVILEGES;
 

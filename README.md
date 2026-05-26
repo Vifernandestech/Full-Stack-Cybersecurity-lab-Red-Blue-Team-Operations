@@ -230,8 +230,7 @@ enum4linux -a 10.0.10.10
 
 * **Segurança da Informação e Auditoria:**
   * **Defense in Depth (Defesa em Profundidade):** Posicionamento estratégico de sensores IDS para cobrir vetores Norte-Sul (WAN) e Leste-Oeste (LAN).
-  * **Controle de Acesso e PoLP:** Aplicação do Princípio do Menor Privilégio através de GPOs hierárquicas, segmentando usuários comuns de administradores de domínio (Bloqueio de *Command Prompt*).
-  * **Gerenciamento Seguro:** Aplicação do conceito de gerência *Out-of-Band*, onde o firewall de borda só aceita configurações através de uma interface web isolada na LAN interna.
+  * **Controle de Acesso:** Aplicação do Princípio do Menor Privilégio através de GPOs hierárquicas, segmentando usuários comuns de administradores de domínio (Bloqueio de *Command Prompt*).
   * **Telemetria:** Monitoramento de disponibilidade de ativos via Zabbix Agent para respostas a incidentes de SOC.
 
 

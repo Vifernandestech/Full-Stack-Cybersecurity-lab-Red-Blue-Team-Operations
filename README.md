@@ -118,14 +118,73 @@ sudo snort -A console -c /etc/snort/snort.conf -i enp0s3
 
 * **Validação Operacional:** Com o console do Snort em modo de escuta, testes de conectividade (ICMP Echo Request/Reply) foram disparados do Windows Server (`10.0.10.10`) para o Gateway (`10.0.10.1`), para o próprio Ubuntu (`10.0.10.20`) e para a WAN (`8.8.8.8`). Todos os fluxos Leste-Oeste foram interceptados e alertados com sucesso na tela do Blue Team.
 
-Você tem toda a razão e essa sua postura é a marca de um excelente profissional de segurança da informação. Em auditorias, relatórios de *Pentest* ou documentações de SOC, registrar um ataque teórico como um ataque "executado" compromete toda a cadeia de custódia e a integridade do documento.
+---
 
-A documentação deve refletir milimetricamente a realidade do terminal.
+### 🗄️ Detalhamento Arquitetônico do SGBD (MySQL)
 
-Para que o seu `README.md` no GitHub fique perfeitamente alinhado com o estado atual (o "Save State" exato) do nosso laboratório físico, você deve cortar a **Fase 4** logo após o "Vazamento Residual".
+A sustentação da Torre de Controle (Zabbix Server) exigiu a implementação e calibração de um Sistema Gerenciador de Banco de Dados (SGBD) relacional robusto. Optou-se pela utilização do **MySQL Server**, gerenciado diretamente via CLI no Ubuntu Server.
 
-Aqui está o fechamento correto e íntegro para o seu documento:
+#### 1. Instalação e Inicialização do Banco de Dados
 
+Após o provisionamento da stack LAMP, o SGBD foi instanciado e configurado para aceitar conexões locais de forma segura. O primeiro passo consistiu na criação do banco de dados dedicado e na definição do conjunto de caracteres (*character set*) adequado para evitar problemas de codificação de strings nos logs monitorados:
+
+```sql
+CREATE DATABASE zabbix CHARACTER SET utf8mb4 COLLATE utf8mb4_bin;
+CREATE USER 'zabbix'@'localhost' IDENTIFIED BY '.Fumaxu951.';
+GRANT ALL PRIVILEGES ON zabbix.* TO 'zabbix'@'localhost';
+FLUSH PRIVILEGES;
+
+```
+
+* **Análise Teórica:** A escolha do *collation* `utf8mb4_bin` foi estritamente necessária porque o Zabbix lida com strings binárias e metadados complexos vindos de múltiplos sistemas operacionais. O uso de privilégios granulares para o usuário `zabbix` restrito ao escopo `localhost` segue o Princípio do Menor Privilégio (PoLP).
+
+#### 2. Análise Crítica do Erro de Injeção e Falha de Privilégio (ERROR 1419)
+
+Durante a fase de população do esquema relacional utilizando o arquivo compactado do Zabbix, o comando foi abortado prematuramente pelo operador devido à ausência de uma barra de progresso nativa na CLI do Linux. Essa interrupção corrompeu o dicionário de dados do banco de dados, gerando o erro de tabela duplicada (`table role already exists`) em tentativas subsequentes.
+
+Ao tentar reexecutar o processo limpo, o motor do MySQL barrou a operação retornando o seguinte erro fatal:
+
+> `ERROR 1419 (HY000): You do not have the SUPER privilege and binary logging is enabled (you *might* want to use the less safe log_bin_trust_function_creators variable)`
+
+* **O Diagnóstico Técnico:** Este erro ocorre porque a injeção do Zabbix (`server.sql.gz`) não contém apenas instruções DDL comuns (como `CREATE TABLE`), mas também comandos para a criação de **Triggers** e funções armazenadas. Como o MySQL opera por padrão com o log binário ativado (`log_bin`), o SGBD bloqueia a criação de funções por usuários comuns que não possuem o privilégio máximo de `SUPER`, visando impedir a replicação de códigos maliciosos ou não determinísticos nas transações do banco.
+
+#### 3. Engenharia de Correção e Hardening do SGBD
+
+Para sanar a corrupção e contornar a restrição de segurança com integridade, foi necessário elevar temporariamente os privilégios administrativos diretamente no console do `root` global do MySQL:
+
+```bash
+# 1. Acesso ao console administrativo como Root global
+sudo mysql -u root -p
+
+```
+
+```sql
+# 2. Desativação temporária da restrição de criação de funções/triggers
+SET GLOBAL log_bin_trust_function_creators = 1;
+
+# 3. Eliminação do esquema relacional corrompido e recriação limpa
+DROP DATABASE zabbix;
+CREATE DATABASE zabbix CHARACTER SET utf8mb4 COLLATE utf8mb4_bin;
+GRANT ALL PRIVILEGES ON zabbix.* TO 'zabbix'@'localhost';
+QUIT;
+
+```
+
+Com o motor parametrizado para confiar nos criadores de funções, a injeção da estrutura de tabelas e restrições de chaves estrangeiras foi reexecutada com sucesso via pipeline do Linux, canalizando a descompactação diretamente para o binário de execução do MySQL:
+
+```bash
+zcat /usr/share/zabbix-sql-scripts/mysql/server.sql.gz | mysql -u zabbix -p zabbix
+
+```
+
+#### 4. Hardening Pós-Injeção
+
+Após a validação de que todas as tabelas foram criadas de forma íntegra, o parâmetro global de segurança foi reativado no MySQL para garantir a conformidade com as diretrizes de auditoria de sistemas e impedir modificações não autorizadas no esquema:
+
+```sql
+SET GLOBAL log_bin_trust_function_creators = 0;
+
+```
 ---
 
 ## 🥷 Fase 4: Red Team (Reconhecimento e Enumeração)
